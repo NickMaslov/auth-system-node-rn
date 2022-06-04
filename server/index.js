@@ -1,13 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-
-require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
 const authRoutes = require('./routes/auth');
+const verifyToken = require('./routes/verifyToken');
 
+app.use('/api/user/profile', verifyToken, (req, res) =>
+  res.send('this is the user profile')
+);
 app.use('/api/users', authRoutes);
 
 app.get('/', (req, res) => res.send('Welcome to the auth system'));
