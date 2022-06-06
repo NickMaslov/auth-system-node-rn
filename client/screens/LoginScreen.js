@@ -3,7 +3,7 @@ import {
   Text,
   TextInput,
   View,
-  ScrollView,
+  Alert,
   KeyboardAvoidingView,
   Image,
   TouchableOpacity,
@@ -12,6 +12,10 @@ import {
 import React from 'react';
 import { Formik } from 'formik';
 import * as yup from 'yup';
+import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import * as authAction from '../redux/actions/authActions';
 
 const formSchema = yup.object({
   email: yup.string().email().required(),
@@ -19,6 +23,8 @@ const formSchema = yup.object({
 });
 
 const LoginScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
@@ -31,8 +37,20 @@ const LoginScreen = ({ navigation }) => {
         }}
         validationSchema={formSchema}
         onSubmit={(values) => {
-          console.log(values);
-          navigation.navigate('Home');
+          dispatch(authAction.loginUser(values))
+            .then(async (result) => {
+              if (result.success) {
+                try {
+                  await AsyncStorage.setItem('token', result.token);
+                  navigation.replace('Home');
+                } catch (error) {
+                  console.log(error);
+                }
+              } else {
+                Alert.alert(result.message);
+              }
+            })
+            .catch((err) => console.log(err));
         }}
       >
         {({
